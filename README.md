@@ -90,3 +90,4 @@ These run automatically when committing code. To manually run them, use:
 ```shell
 pre-commit run -a
 ```
+
