@@ -15,6 +15,9 @@ workflow:
   auto_cancel:
     on_new_commit: interruptible
 
+variables:
+  LIST: thirdparty
+
 include:
   - project: "drones/ci_scripts"
     ref: main
