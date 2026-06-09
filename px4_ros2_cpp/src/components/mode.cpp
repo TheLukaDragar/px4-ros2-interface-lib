@@ -118,6 +118,8 @@ void ModeBase::callOnActivate()
   _is_active = true;
   _completed = false;
   _last_setpoint_update = node().get_clock()->now();
+  // PX4 refuses cached config_control_setpoints older than 10 ms on activation; republish now.
+  republishActiveSetpointConfiguration();
   onActivate();
 
   if (_setpoint_update_rate_hz > FLT_EPSILON) {
@@ -131,6 +133,7 @@ void ModeBase::callOnDeactivate()
 {
   RCLCPP_DEBUG(node().get_logger(), "Mode '%s' deactivated", _registration->name().c_str());
   _is_active = false;
+  deactivateAllSetpointTypes();
   onDeactivate();
   updateSetpointUpdateTimer();
 }
@@ -293,12 +296,30 @@ void ModeBase::setSetpointUpdateRateFromSetpointTypes()
 
 void ModeBase::activateSetpointType(SetpointBase& setpoint)
 {
+  _active_setpoint = &setpoint;
   setpoint.setActive(true);
   px4_msgs::msg::VehicleControlMode control_mode{};
   control_mode.source_id = static_cast<uint8_t>(id());
   setpoint.getConfiguration().fillControlMode(control_mode);
   control_mode.timestamp = 0;  // Let PX4 set the timestamp
   _config_control_setpoints_pub->publish(control_mode);
+}
+
+void ModeBase::republishActiveSetpointConfiguration()
+{
+  if (_active_setpoint != nullptr) {
+    activateSetpointType(*_active_setpoint);
+
+  } else if (!_setpoint_types.empty()) {
+    activateSetpointType(*_setpoint_types[0]);
+  }
+}
+
+void ModeBase::deactivateAllSetpointTypes()
+{
+  for (const auto& setpoint_type : _setpoint_types) {
+    setpoint_type->setActive(false);
+  }
 }
 
 bool ModeBase::defaultMessageCompatibilityCheck()
