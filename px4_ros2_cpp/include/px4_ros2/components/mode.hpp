@@ -206,6 +206,7 @@ class ModeBase : public Context {
   void updateModeRequirementsFromSetpoints();
   void setSetpointUpdateRateFromSetpointTypes();
   void activateSetpointType(SetpointBase& setpoint);
+  void deactivateAllSetpointTypes();
 
   std::shared_ptr<Registration> _registration;
 

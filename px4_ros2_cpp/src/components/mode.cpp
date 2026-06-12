@@ -118,6 +118,7 @@ void ModeBase::callOnActivate()
   _is_active = true;
   _completed = false;
   _last_setpoint_update = node().get_clock()->now();
+  deactivateAllSetpointTypes();
   onActivate();
 
   if (_setpoint_update_rate_hz > FLT_EPSILON) {
@@ -131,6 +132,7 @@ void ModeBase::callOnDeactivate()
 {
   RCLCPP_DEBUG(node().get_logger(), "Mode '%s' deactivated", _registration->name().c_str());
   _is_active = false;
+  deactivateAllSetpointTypes();
   onDeactivate();
   updateSetpointUpdateTimer();
 }
@@ -299,6 +301,13 @@ void ModeBase::activateSetpointType(SetpointBase& setpoint)
   setpoint.getConfiguration().fillControlMode(control_mode);
   control_mode.timestamp = 0;  // Let PX4 set the timestamp
   _config_control_setpoints_pub->publish(control_mode);
+}
+
+void ModeBase::deactivateAllSetpointTypes()
+{
+  for (auto& setpoint_type : _setpoint_types) {
+    setpoint_type->setActive(false);
+  }
 }
 
 bool ModeBase::defaultMessageCompatibilityCheck()
