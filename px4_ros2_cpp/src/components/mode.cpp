@@ -294,15 +294,20 @@ void ModeBase::setSetpointUpdateRateFromSetpointTypes()
   }
 }
 
-void ModeBase::activateSetpointType(SetpointBase& setpoint)
+void ModeBase::publishSetpointConfig(SetpointBase& setpoint)
 {
-  _active_setpoint = &setpoint;
-  setpoint.setActive(true);
   px4_msgs::msg::VehicleControlMode control_mode{};
   control_mode.source_id = static_cast<uint8_t>(id());
   setpoint.getConfiguration().fillControlMode(control_mode);
   control_mode.timestamp = 0;  // Let PX4 set the timestamp
   _config_control_setpoints_pub->publish(control_mode);
+}
+
+void ModeBase::activateSetpointType(SetpointBase& setpoint)
+{
+  _active_setpoint = &setpoint;
+  setpoint.setActive(true);
+  publishSetpointConfig(setpoint);
 }
 
 void ModeBase::republishActiveSetpointConfiguration()
@@ -317,7 +322,7 @@ void ModeBase::republishActiveSetpointConfiguration()
 
 void ModeBase::deactivateAllSetpointTypes()
 {
-  for (const auto& setpoint_type : _setpoint_types) {
+  for (auto& setpoint_type : _setpoint_types) {
     setpoint_type->setActive(false);
   }
 }
