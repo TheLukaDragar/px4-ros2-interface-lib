@@ -207,7 +207,6 @@ class ModeBase : public Context {
   void setSetpointUpdateRateFromSetpointTypes();
   void publishSetpointConfig(SetpointBase& setpoint);
   void activateSetpointType(SetpointBase& setpoint);
-  void republishActiveSetpointConfiguration();
   void deactivateAllSetpointTypes();
 
   std::shared_ptr<Registration> _registration;
@@ -235,7 +234,6 @@ class ModeBase : public Context {
   std::vector<std::shared_ptr<SetpointBase>> _setpoint_types;
   std::vector<SetpointBase*>
       _new_setpoint_types;  ///< This stores new setpoints during initialization, until registration
-  SetpointBase* _active_setpoint{nullptr};
 };
 
 /** @}*/

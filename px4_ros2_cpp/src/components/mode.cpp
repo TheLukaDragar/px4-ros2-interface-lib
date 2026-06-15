@@ -118,8 +118,7 @@ void ModeBase::callOnActivate()
   _is_active = true;
   _completed = false;
   _last_setpoint_update = node().get_clock()->now();
-  // PX4 refuses cached config_control_setpoints older than 10 ms on activation; republish now.
-  republishActiveSetpointConfiguration();
+  activateSetpointType(*_setpoint_types[0]);
   onActivate();
 
   if (_setpoint_update_rate_hz > FLT_EPSILON) {
@@ -246,7 +245,7 @@ bool ModeBase::onRegistered()
 
   // TODO: check setpoint types compatibility with current vehicle type
 
-  activateSetpointType(*_setpoint_types[0]);
+  publishSetpointConfig(*_setpoint_types[0]);
   if (_setpoint_update_rate_hz < FLT_EPSILON) {
     // Do not use default setpoint rate if rate was already set by user
     setSetpointUpdateRateFromSetpointTypes();
@@ -305,19 +304,8 @@ void ModeBase::publishSetpointConfig(SetpointBase& setpoint)
 
 void ModeBase::activateSetpointType(SetpointBase& setpoint)
 {
-  _active_setpoint = &setpoint;
   setpoint.setActive(true);
   publishSetpointConfig(setpoint);
-}
-
-void ModeBase::republishActiveSetpointConfiguration()
-{
-  if (_active_setpoint != nullptr) {
-    activateSetpointType(*_active_setpoint);
-
-  } else if (!_setpoint_types.empty()) {
-    activateSetpointType(*_setpoint_types[0]);
-  }
 }
 
 void ModeBase::deactivateAllSetpointTypes()
